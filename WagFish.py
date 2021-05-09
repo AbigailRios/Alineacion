@@ -48,32 +48,145 @@ def WagnerFisher(oracion1, oracion2):
     resultado.append(lista_auxiliar)
     return resultado
 
+def alinearConj(oracion1, r, oracion2, c, Z, C):
+
+    # Palabra vacía
+    palabra_vacia = {'token': ' ', 'lemma': ' ', 'tag': ' '}
+    
+    if r != 0:
+        if c != 0:
+            # Costos básicos
+            w_a_b = 0 if Levishtein.palabras_equivalentes(oracion1[r-1], oracion2[c-1]) else 1
+            w_e = 1
+            
+            if C[r][c] == C[r-1][c-1] + w_a_b:
+                Z[0].insert(0, oracion1[r-1])
+                Z[1].insert(0, oracion2[c-1])
+                Z[2].insert(0, 'I' if Levishtein.palabras_equivalentes(oracion1[r-1], oracion2[c-1]) else 'C')
+                
+                alinearConj(oracion1, r-1, oracion2, c-1, Z, C)
+                
+            if C[r][c] == C[r-1][c] + w_e:
+                Z[0].insert(0, oracion1[r-1])
+                Z[1].insert(0, palabra_vacia)
+                Z[2].insert(0, 'N')
+                
+                alinearConj(oracion1, r-1, oracion2, c, Z, C)
+                
+            if C[r][c] == C[r][c-1] + w_e:
+                Z[0].insert(0, palabra_vacia)
+                Z[1].insert(0, oracion2[c-1])
+                Z[2].insert(0, 'N')
+                
+                alinearConj(oracion1, r, oracion2, c-1, Z, C)
+                    
+            if r >= 2 and c >= 2:
+                w_s = Levishtein.intercambio_consecutivo(oracion1, oracion2, r-1, c-1)
+                if C[r][c] == C[r-2][c-2] + w_s:
+                    Z[0].insert(0, oracion1[r-2])
+                    Z[0].insert(0, oracion1[r-1])
+                    
+                    Z[1].insert(0, oracion2[c-2])
+                    Z[1].insert(0, oracion2[c-1])
+                    
+                    Z[2].insert(0, 'I')
+                    Z[2].insert(0, 'I')
+                    
+                    alinearConj(oracion1, r-2, oracion2, c-2, Z, C)
+            
+            if r >= 3 and c >= 3:
+                w_c = Levishtein.intercambio_conjuntivo(oracion1, oracion2, r-1, c-1)
+                if C[r][c] == C[r-3][c-3] + w_c:
+                    Z[0].insert(0, oracion1[r-3])
+                    Z[0].insert(0, oracion1[r-2])
+                    Z[0].insert(0, oracion1[r-1])
+                    
+                    Z[1].insert(0, oracion2[c-3])
+                    Z[1].insert(0, oracion2[c-2])
+                    Z[1].insert(0, oracion2[c-1])
+                    
+                    Z[2].insert(0, 'I')
+                    Z[2].insert(0, 'I')
+                    Z[2].insert(0, 'I')
+                    
+                    alinearConj(oracion1, r-3, oracion2, c-3, Z, C)
+    
+        else:
+            Z[0].insert(0, oracion1[r-1])
+            Z[1].insert(0, palabra_vacia)
+            Z[2].insert(0, 'N')
+            
+            alinearConj(oracion1, r-1, oracion2, 0, Z, C)
+    
+    else:
+        if c != 0:
+            Z[0].insert(0, palabra_vacia)
+            Z[1].insert(0, oracion2[c-1])
+            Z[2].insert(0, 'N')
+            
+            alinearConj(oracion1, 0, oracion2, c-1, Z, C)
+            
+        else:
+            # Mostrar biblias
+            return Z
+            
 
 def WagFishConj(oracion1, oracion2):
     """
     Algoritmo de Wagner Fisher aplicado a la matriz de costos que considera a los
     intercambios consecutivo y conjuntivo
     
-    :param seq1: Es una lista de diccionarios que representa a la primera oración. Cada diccionario contiene el token, lemma y tag. 
-    :param seq2: Es una lista de diccionarios que representa a la segunda oración. Cada diccionario contiene el token, lemma y tag.
+    :param oracion1: Es una lista de diccionarios que representa a la primera oración. Cada diccionario contiene el token, lemma y tag. 
+    :param oracion2: Es una lista de diccionarios que representa a la segunda oración. Cada diccionario contiene el token, lemma y tag.
     :returns: Una lista cuyos elementos son 3 listas. La primer lista (posición 0) es el agrupamiento de la primera oración
     La segunda lista (posicion 1) es el agrupamiento de la segunda oración.
     La tercera lista (posicion 2) representa al tipo de par en la posición i. Los pares pueden ser nulos, representados 
     por una 'N', pares iguales, representados por una 'I', o pares correspondientes, representados por una 'C'.
     """
+    
+    #Versión 1
     cost = Levishtein.levi(oracion1, oracion2) 
     i = len(oracion1) 
     j = len(oracion2) 
     lista_auxiliar = []
     lista1 = []
     lista2 = []
+    w_e = 1
+    
     while (i>0) and (j>0):
-        if (cost[i][j] == cost[i-1][j]+1):
+        if i >= 2 and j >= 2 and cost[i][j] == cost[i-2][j-2] + Levishtein.intercambio_consecutivo(oracion1, oracion2, i-1, j-1):
+            lista1.insert(0, oracion1[i-2])
+            lista1.insert(0, oracion1[i-1])
+            
+            lista2.insert(0, oracion2[j-2])
+            lista2.insert(0, oracion2[j-1])
+            
+            lista_auxiliar.insert(0, 'J')
+            lista_auxiliar.insert(0, 'J')
+            
+            i -= 2
+            j -= 2
+        elif i >= 3 and j >= 3 and cost[i][j] == cost[i-3][j-3] + Levishtein.intercambio_conjuntivo(oracion1, oracion2, i-1, j-1):
+            lista1.insert(0, oracion1[i-3])
+            lista1.insert(0, oracion1[i-2])
+            lista1.insert(0, oracion1[i-1])
+            
+            lista2.insert(0, oracion2[j-3])
+            lista2.insert(0, oracion2[j-2])
+            lista2.insert(0, oracion2[j-1])
+            
+            lista_auxiliar.insert(0, 'J')
+            lista_auxiliar.insert(0, 'J')
+            lista_auxiliar.insert(0, 'J')
+            
+            i -= 3
+            j -= 3
+        elif (cost[i][j] == cost[i-1][j] + w_e):
             lista1.insert(0, oracion1[i-1])
             lista2.insert(0, {'token': ' ', 'lemma': ' ', 'tag': ' '})
             lista_auxiliar.insert(0, 'N')
             i -= 1
-        elif (cost[i][j] == cost[i][j-1]+1):
+        elif (cost[i][j] == cost[i][j-1] + w_e):
             lista1.insert(0, {'token': ' ', 'lemma': ' ', 'tag': ' '})
             lista2.insert(0, oracion2[j-1])
             lista_auxiliar.insert(0, 'N')
@@ -87,11 +200,25 @@ def WagFishConj(oracion1, oracion2):
                 lista_auxiliar.insert(0, 'C')
             i = i-1
             j = j-1
+            
     resultado = []
     resultado.append(lista1)
     resultado.append(lista2)
     resultado.append(lista_auxiliar)
     return resultado
+
+    """ Versión 2
+ 
+    r = len(oracion1)
+    c = len(oracion2)
+    Z = [ [], [], [] ]
+    C = Levishtein.levi(oracion1, oracion2)
+    resultado = alinearConj(oracion1, r, oracion2, c, Z, C)
+    print('A: ' + str(len(oracion1)) + ' B: ' + str(len(oracion2)) + ' R: ' + str(len(resultado)))
+    
+    return resultado
+    """
+    
 
 def pares_seminulos(alineacion):
     """
