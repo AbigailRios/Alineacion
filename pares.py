@@ -136,14 +136,14 @@ def candidatos_POSsemi(Versiculo1, Versiculo2, g):
     
 def son_pares_sem(alineaciones, f, conLemma):
     """
-    Función que calcula a las alineaciones cuyo lcc es mayor a 5, despues verifica que esas dos palabras sean pares lexicos cuyo etiquetado POS indique que no son palabras funcionales. A los pares lexicos que superen el filtro se les escribe en un txt para validar los resultados.
+    Función que calcula a las alineaciones cuyo lcc es mayor a 4, despues verifica que esas dos palabras sean pares lexicos cuyo etiquetado POS indique que no son palabras funcionales. A los pares lexicos que superen el filtro se les escribe en un txt para validar los resultados.
 
     :param alineaciones: Una alineacion obtenida mediante el algoritmo de WagnerFisher que ademas tiene calculado el lcc
     :param f: el escritor para hacer el txt
     """
     for i in range(len(alineaciones[3])):
         lcc = alineaciones[3][i]
-        if lcc >= 5:
+        if lcc >= 4:
             if nos_interesa(alineaciones[0][i],alineaciones[1][i]):
                if conLemma == 1:
                    a = str(alineaciones[0][i]['token']) + ' / ' + str(alineaciones[0][i]['lemma'])+ ' - '+ str(alineaciones[1][i]['token']) + ' / ' + str(alineaciones[1][i]['lemma']) + ' -- ' +str(lcc)+ ' ' + str(alineaciones[0][0]['token'])+ '\n'
@@ -175,32 +175,43 @@ def pares_completos(Libro1, Libro2, path, conLemma):
     :param Libro2: una lista de listas, donde cada lista contiene un versículo procesado mediante freeling, por lo que cada versiculo es una lista de json. Obtenido mediante la funcion procesar texto
     :param path: es lo que nos ayuda con el título de los resultados
     """
-    f = open('./Resultados/Pares/Normal/'+path+'.txt', 'w',encoding='utf-8')
     g = open('./Resultados/Alineaciones/Normal/alineaciones-' + path+ '.txt', 'w',encoding='utf-8')
-    m = open('./Resultados/Pares/Semi/Seminull-'+path+'.txt', 'w',encoding='utf-8')
-    h = open('./Resultados/Pares/Intercambio/Intercambio_'+ path +'.txt', 'w',encoding='utf-8')
-    r = open('./Resultados/Alineaciones/Semi/alineacionesSeminiull-'+ path + '.txt', 'w',encoding='utf-8')
+    f = open('./Resultados/Pares/Normal/'+path+'.txt', 'w',encoding='utf-8')
+    
     l = open('./Resultados/Alineaciones/Intercambio/alineaciones-Intercambio' + path+ '.txt', 'w',encoding='utf-8')
-    a = open('./Resultados/Pares/POS/POS'+path+'.txt', 'w',encoding='utf-8')
+    h = open('./Resultados/Pares/Intercambio/Intercambio_'+ path +'.txt', 'w',encoding='utf-8')
+
+    r = open('./Resultados/Alineaciones/Semi/alineacionesSeminiull-'+ path + '.txt', 'w',encoding='utf-8')    
+    m = open('./Resultados/Pares/Semi/Seminull-'+path+'.txt', 'w',encoding='utf-8')
+    
     b = open('./Resultados/Alineaciones/POS/POS'+path+'.txt', 'w',encoding='utf-8')
+    a = open('./Resultados/Pares/POS/POS'+path+'.txt', 'w',encoding='utf-8')
+    
     c = open('./Resultados/Alineaciones/POSsemi/POSsemi'+path+'.txt', 'w',encoding='utf-8')
     d = open('./Resultados/Pares/POSsemi/POSsemi'+path+'.txt', 'w',encoding='utf-8')
+    
     j = len(Libro1)
     if j != len(Libro2):
         print('Las biblias seleccionadas no están alineadas.')
         exit(1) 
-    for i in range(len(Libro1)):
+    for i in range(j):
         print(f'alineando {i+1}/{j}')
+        
         alineacion_versiculo_i = candidatos_a_pares(Libro1[i], Libro2[i], g)
         son_pares_sem(alineacion_versiculo_i,f, conLemma)
+        
         alineacion_inversion_i = candidatos_inversion(Libro1[i], Libro2[i], l)
         son_pares_sem(alineacion_inversion_i, h, conLemma)
+        
         alineacion_seminull_i = candidatos_seminull(Libro1[i], Libro2[i], r)
         son_pares_sem(alineacion_seminull_i, m, conLemma)
+        
         alineacion_pos_i = candidatos_POS(Libro1[i], Libro2[i], b)
         son_pares_sem(alineacion_pos_i, a, conLemma)
+        
         alineacion_POSsemi_i = candidatos_POSsemi(Libro1[i], Libro2[i], c)
         son_pares_sem(alineacion_POSsemi_i, d, conLemma)
+    
     f.close()
     g.close()
     h.close()
