@@ -72,13 +72,15 @@ def candidatos_inversion(Versiculo1, Versiculo2, g):
     :param g: el escritor para la función mostrar_alineaciones
     :returns: Las alineacion derivada del algoritmo de Wagner Fisher considerando la inversión junto al lcc 
     """
-    alineacion = WagFish.WagFishConj(Versiculo1, Versiculo2)
-    dummy = alineacion.copy()
-    mostrar_alineacion(dummy, g)
-    alineacion.append(lcc.calcular_lcc_completo(alineacion[2]))
-
+    rutas_multiples = WagFish.WagFishConj(Versiculo1, Versiculo2)
+    numero_de_rutas = len(rutas_multiples)
     
-    return alineacion
+    dummy = rutas_multiples.copy()
+    for i in range(numero_de_rutas):
+        mostrar_alineacion(dummy[i], g)
+        rutas_multiples[i].append(lcc.calcular_lcc_completo(rutas_multiples[i][2]))
+
+    return rutas_multiples
 
 def candidatos_seminull(Versiculo1, Versiculo2, g):
     """
@@ -200,8 +202,9 @@ def pares_completos(Libro1, Libro2, path, conLemma):
         alineacion_versiculo_i = candidatos_a_pares(Libro1[i], Libro2[i], g)
         son_pares_sem(alineacion_versiculo_i,f, conLemma)
         
-        alineacion_inversion_i = candidatos_inversion(Libro1[i], Libro2[i], l)
-        son_pares_sem(alineacion_inversion_i, h, conLemma)
+        alineaciones_inversion_i = candidatos_inversion(Libro1[i], Libro2[i], l)
+        for alineacion in alineaciones_inversion_i:
+            son_pares_sem(alineacion, h, conLemma)
         
         alineacion_seminull_i = candidatos_seminull(Libro1[i], Libro2[i], r)
         son_pares_sem(alineacion_seminull_i, m, conLemma)
