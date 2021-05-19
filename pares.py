@@ -75,6 +75,15 @@ def candidatos_inversion(Versiculo1, Versiculo2, g):
     rutas_multiples = WagFish.WagFishConj(Versiculo1, Versiculo2)
     numero_de_rutas = len(rutas_multiples)
     
+    if numero_de_rutas > 0:
+        print("==================================================")
+        print("Versículo original 1:")
+        print( el['token'] + " " for el in Versiculo1)
+        print("Versículo original 2:")
+        print( el['token'] + " " for el in Versiculo1)
+        print("==================================================")
+        print('\n')
+
     dummy = rutas_multiples.copy()
     for i in range(numero_de_rutas):
         mostrar_alineacion(dummy[i], g)
